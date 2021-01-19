@@ -76,6 +76,16 @@ export default function umd(
 	const globalDeps = trimmedImports.map(module => globalProp(module.globalName, globalVar));
 	const factoryArgs = trimmedImports.map(m => m.name);
 
+	if (accessedGlobals.has('require')) {
+		factoryArgs.unshift('require');
+		amdDeps.unshift(`'require'`);
+	}
+
+	if (accessedGlobals.has('module')) {
+		factoryArgs.unshift('module');
+		amdDeps.unshift(`'module'`);
+	}
+
 	if (namedExportsMode && (hasExports || noConflict)) {
 		amdDeps.unshift(`'exports'`);
 		cjsDeps.unshift(`exports`);

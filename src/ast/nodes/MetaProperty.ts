@@ -169,7 +169,7 @@ const accessedMetaUrlGlobals = {
 	es: [],
 	iife: ['document', 'URL'],
 	system: ['module'],
-	umd: ['document', 'require', 'URL']
+	umd: ['document', 'module', 'require', 'URL']
 };
 
 const accessedFileUrlGlobals = {
@@ -212,11 +212,15 @@ const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string)
 	es: relativePath => getResolveUrl(`'${relativePath}', import.meta.url`),
 	iife: relativePath => getRelativeUrlFromDocument(relativePath),
 	system: relativePath => getResolveUrl(`'${relativePath}', module.meta.url`),
-	umd: relativePath =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
+	umd: relativePath => {
+		const amdRelativePath = relativePath[0] !== '.' ? './' + relativePath : relativePath;
+		return `(typeof document === 'undefined' ? ${getResolveUrl(
 			`'file:' + __dirname + '/${relativePath}'`,
 			`(require('u' + 'rl').URL)`
-		)} : ${getRelativeUrlFromDocument(relativePath)})`
+		)} : typeof require === 'function' ? ${getResolveUrl(
+			`require.toUrl('${amdRelativePath}'), document.baseURI`
+		)} : ${getRelativeUrlFromDocument(relativePath)})`;
+	}
 };
 
 const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string) => string> = {
@@ -235,6 +239,8 @@ const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string
 			`(typeof document === 'undefined' ? ${getResolveUrl(
 				`'file:' + __filename`,
 				`(require('u' + 'rl').URL)`
+			)} : typeof module === 'object' ? ${getResolveUrl(
+				`module.uri, document.baseURI`
 			)} : ${getUrlFromDocument(chunkId)})`
 	)
 };

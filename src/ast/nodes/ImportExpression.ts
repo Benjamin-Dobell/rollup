@@ -205,5 +205,6 @@ export default class ImportExpression extends NodeBase {
 const accessedImportGlobals: Record<string, string[]> = {
 	amd: ['require'],
 	cjs: ['require'],
-	system: ['module']
+	system: ['module'],
+	umd: ['require']
 };
